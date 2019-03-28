@@ -1,0 +1,9 @@
+﻿  stdafx.cpp
+  AVLTree.cpp
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 8\project 8 avl trees\project 8 avl trees\avltree.cpp(196): warning C4018: '<': signed/unsigned mismatch
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 8\project 8 avl trees\project 8 avl trees\avltree.cpp(218): warning C4018: '<': signed/unsigned mismatch
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 8\project 8 avl trees\project 8 avl trees\avltree.cpp(230): warning C4018: '<': signed/unsigned mismatch
+  Node.cpp
+  Generating Code...
+  Project 8 AVL trees.cpp
+  Project 8 AVL trees.vcxproj -> C:\Users\Benjamin Jones\Documents\college\2018 - Spring Semester\CS 2020\Project 8\Project 8 AVL trees\Debug\Project 8 AVL trees.exe
