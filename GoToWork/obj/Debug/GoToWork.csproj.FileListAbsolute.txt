@@ -1,0 +1,26 @@
+C:\Users\Dennis\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.csprojResolveAssemblyReference.cache
+C:\Users\Dennis\OneDrive\Documents\CS1400\Code Examples\GoToWork\bin\Debug\GoToWork.exe
+C:\Users\Dennis\OneDrive\Documents\CS1400\Code Examples\GoToWork\bin\Debug\GoToWork.pdb
+C:\Users\Dennis\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.exe
+C:\Users\Dennis\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.pdb
+C:\Users\Owner\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.exe
+C:\Users\Owner\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.pdb
+C:\Users\Owner\OneDrive\Documents\CS1400\Code Examples\GoToWork\bin\Debug\GoToWork.exe
+C:\Users\Owner\OneDrive\Documents\CS1400\Code Examples\GoToWork\bin\Debug\GoToWork.pdb
+C:\Users\Owner\OneDrive\Documents\CS1400\Code Examples\GoToWork\obj\Debug\GoToWork.csprojResolveAssemblyReference.cache
+E:\Users\Owner\Desktop\GoToWork\obj\Debug\GoToWork.exe
+E:\Users\Owner\Desktop\GoToWork\obj\Debug\GoToWork.pdb
+E:\Users\Owner\Desktop\GoToWork\bin\Debug\GoToWork.exe
+E:\Users\Owner\Desktop\GoToWork\bin\Debug\GoToWork.pdb
+E:\Users\Owner\Desktop\GoToWork\obj\Debug\GoToWork.csprojResolveAssemblyReference.cache
+C:\Users\Benjamin Jones\Documents\college\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.exe
+C:\Users\Benjamin Jones\Documents\college\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.pdb
+C:\Users\Benjamin Jones\Documents\college\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.csprojResolveAssemblyReference.cache
+C:\Users\Benjamin Jones\Documents\college\CS-1400 Computer Science\GoToWork\bin\Debug\GoToWork.exe
+C:\Users\Benjamin Jones\Documents\college\CS-1400 Computer Science\GoToWork\bin\Debug\GoToWork.pdb
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\bin\Debug\GoToWork.exe
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\bin\Debug\GoToWork.pdb
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.csprojAssemblyReference.cache
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.csproj.CoreCompileInputs.cache
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.exe
+C:\Users\Benjamin Jones\Documents\college\2016 Spring Semester\CS-1400 Computer Science\GoToWork\obj\Debug\GoToWork.pdb
