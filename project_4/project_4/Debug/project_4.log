@@ -1,0 +1,32 @@
+﻿  stdafx.cpp
+  project_4.cpp
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(34): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(47): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(60): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(77): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(90): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(103): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(121): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(134): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\project_4.cpp(147): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+  Search.cpp
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\search.cpp(20): warning C4018: '<': signed/unsigned mismatch
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\search.cpp(101): warning C4018: '<': signed/unsigned mismatch
+  Generating Code...
+  Timer.cpp
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\timer.cpp(19): warning C4244: 'return': conversion from '_Rep' to 'unsigned int', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\timer.cpp(26): warning C4244: 'return': conversion from '_Rep' to 'unsigned int', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+c:\users\benjamin jones\documents\college\2018 - spring semester\cs 2020\project 4\project_4\project_4\timer.cpp(33): warning C4244: 'return': conversion from '_Rep' to 'unsigned int', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+  project_4.vcxproj -> C:\Users\Benjamin Jones\Documents\college\2018 - Spring Semester\CS 2020\Project 4\project_4\Debug\project_4.exe
