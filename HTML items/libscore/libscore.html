@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Libscore.html</title>
+    <!-- bootstrap cdn-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- ajax part, because I get an error if it's not up here with centering-->
+    <script
+  src="http://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div id="myFormSection" class="container-fluid text-center">
+    <form class="theForm" id="theForm" onsubmit="return false"></form>
+    <button>Add another field</button>
+</div>
+<div class="dataHere container-fluid text-center"></div>
+
+<!-- bootstrap part-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+<!-- javascript section-->
+<script>
+var count = 0;
+// when the doc is read, add the first button and two text boxes
+$(document).ready(function(){
+    $(`.theForm`).html(`<span class'mb-0'><span class='h3'>Library</span><br><input type='text' name='library0' value='library'><br><input type='text' name='library1' value='library'>
+    <div id='addHere'></div><br><input type='submit' value='Submit'><br>`);
+    count = 2;
+});
+// when the button to add another field is clicked
+$(`button`).click(function(){
+    $(`<input type='text' name='library${count}' value='library'><br>`).appendTo('#addHere');
+    
+    //$(`<input type='text' name='library${count}' value='library'><br>`).prependTo(`.theForm`);
+    count++;
+});
+// what happens when the form is submitted
+$(`form`).submit(function(){
+    // create function variables
+    var readMe = []; // this will hold the data that we will read from, contains strings
+    var formData = []; // this will contain all the library names, contains objects
+    // empty the div labled 'dataHere'
+    $('.dataHere').text('');
+    // fill formData with the information
+    for (let i=0; i< count; i++){
+        let tempObj = {
+            library : $(`input[name=library${i}]`).val()
+        };
+        // push the temporary object into formData
+        formData.push(tempObj);
+    }// end of for loop
+    // for loop to fix the names
+    for (let i=0; i<formData.length; i++){
+        let tempData = formData[i].library.split(' ').join('-');
+        readMe.push(tempData); 
+    }// end of for loop, this is done this way so that it is more testable
+// $.get("https://api.npms.io/v2/package/"+library, function(data){}); goes here
+$(`.dataHere`).append(`<br>`);
+for(let i=0; i<formData.length; i++){
+        $.get("https://api.npms.io/v2/package/"+readMe[i], function(data){
+            let temp = Math.floor(data.score.final * 100);
+            $(`.dataHere`).append(`${formData[i].library}, score: ${temp}<br>`);
+            // so, it'll display the info in random order, and not the order of input
+        });
+        }
+});
+</script>
+</body>
