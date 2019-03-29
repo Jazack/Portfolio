@@ -1,0 +1,19 @@
+[
+    [{"myName":"Benjamin Jones"},
+        {"myCell": "(801) 609-1358"},
+        {"myEmail" : "BenJones717@gmail.com"}
+        ],    
+    [ "Became an Eagle Scout", "Received the AP Scholar Award"
+    ],
+    ["C#","C++", "HTML","CSS","Javascript"
+    ],
+    ["English, native speaker", "Spanish, spent two years in Paraguay where I learned Spanish"
+    ],
+    [
+    {"myPlace" : "Boy Scouts of America" , "myDate" : "June 2012-August 2012", "myPosition" : "Camp Staff", "myLocation" : "Springville, UT", "myDuty" :"I was responsible for teaching and aiding the scouts in attendance throughout the duration of their stay at the camp."},
+    {"myPlace" : "Computer Corner" , "myDate" : "Seasonally over the course of several years", "myPosition" : "Technician", "myLocation" : "Payson, UT", "myDuty" :"I was responsible for salvaging usable parts from no longer working computers and building computers from those parts salvaged."},
+    {"myPlace" : "Infiniti Creations" , "myDate" : "November 2017 - current", "myPosition" : "Fulfillment", "myLocation" : "Lindon, UT", "myDuty" :"I am responsible for preparing orders for shipping."}
+    ],
+    [
+    {"myPlace" : "Utah Valley University" , "myDate" : "2016-current" , "myLevel" : "Bachelor in Science", "myLocation" : "Orem, Ut, United States"}
+    ] ]
