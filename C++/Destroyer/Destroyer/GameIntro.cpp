@@ -9,8 +9,6 @@
 
 GameIntro::GameIntro()
 {
-	music = "- Faun - Wilde Rose (Lyrics) -.wav";
-	PlaySound(TEXT("music\\- Faun - Wilde Rose (Lyrics) -.wav"), NULL, SND_ASYNC);
 	ConsoleControls::ConsoleControls(FOREGROUND, WHITE);
 	// set the random generator to be based on the time
 	srand(time(NULL));

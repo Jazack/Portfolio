@@ -15,7 +15,7 @@ Credits::Credits()
 {
 	
 	system("CLS");
-	cout << "GAME DESIGN: Benjamin Jones\n\nGAME STORY: Benjamin Jones\n\nPROGRAMMER: Benjamin Jones\n\nSPECIAL THANKS TO MICROSOFT FOR PERMITTING STUDENTS TO HAVE VISUAL STUDIOS\n\n";
+	cout << "GAME DESIGN: Benjamin Jones\n\nGAME STORY: Benjamin Jones\n\nPROGRAMMER: Benjamin Jones\n\nSPECIAL THANKS TO MICROSOFT FOR PERMITTING STUDENTS TO HAVE VISUAL STUDIOS\nAND http://freemusicarchive.org FOR PROVIDING FREE DOMAIN MUSIC\n\n";
 	system("PAUSE");
 }
 
