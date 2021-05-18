@@ -9,29 +9,48 @@ from tkinter import scrolledtext
 from tkinter import ttk
 from functools import partial
 import sys
-#iimport additional scripts
+# import additional scripts
 import CardDatabaseMaker
 import Gather
-
+import popup
+    
 # class Display
 #
 # purpose: to display the elements
 class Display:
     # pre-define the slots
-    __slots__ = ['oldText', 'db', 'gt', "dicL", "connected", "powers", "specials", "tabs", "eff", 'nTabs', 'nSpecials']
+    __slots__ = ['oldText', 'pu', 'db', 'gt', "dicL", "connected", "powers", "specials", "tabs", "eff", 'nTabs', 'nSpecials', 'generals']
 
     # function: __init__
     # self - don't need to worry about this
     # db - the database being used, if no database is give, use default units.db
     def __init__(self, db="units.db"):
+
         self.db = CardDatabaseMaker.ReadFiles(db)
         self.gt = Gather.GatherItems(db)
+        self.pu = popup.PopUp()
+        self.generals = ["JANDAR", "ULLAR", "VYDAR", "EINAR", "UTGAR", "VALKRILL", "AQUILLA", "MARVEL"]
 
-    # function: caview
+    
+    # function: cardview
     #
     # purpose: set up and run the GUI
     def cardview(self):
         title = "Heroscape Database"
+        ## used to set to zero all items
+        def emptyAll():
+            # make a screen to warn about this
+            mes = "WARNING! THIS CANNOT BE UNDONE!\nCONTINUE?\n(NOTE: YOU MUST EXIT THE DATABASE BEFORE\nEFFECTS TAKE PLACE"
+            return emptyAllHelper() if self.pu.popup(mes) else print("cancelled")
+            
+        def emptyAllHelper():
+            # get list of all names, empty each item
+            manage = self.db.getAll()
+            for unit in manage:
+                temp = self.db.display(unit)
+                temp[-1] = 0
+                add(temp)
+            
         ## used to drop items
         def drop():
             send = name.get("1.0",END).upper().strip("\n")
@@ -62,7 +81,6 @@ class Display:
                 color = "dark goldenrod"
             elif nsend =="Valkrill":
                 color = "gold4"
-            print("Send is: ", send, " and color is: ", color)
             return color
         ## used to change the color of database items
         def colorChange():
@@ -103,6 +121,8 @@ class Display:
             nsend = send[0].upper() + send[1:]
             #because python apparently does not have
             #switch statements
+            allUnits.delete(0, 'last')
+            create(allUnits, "allUnits")
             if nsend == "Jandar":
                 jandar.delete(0, 'last')
                 create(jandar, "jandar")
@@ -147,7 +167,7 @@ class Display:
             abilities.config(state=NORMAL)
             quantity.config(state=NORMAL)
         # what to do when someone hits enter
-        def enterHelp(event):
+        def enterHelp(event = None):
             read()
             search.delete("1.0",END)
             return("break")
@@ -157,7 +177,12 @@ class Display:
             return("break")
         # create function
         def create(file, name):
-            send = name.upper()
+            send = []
+            if name == "allUnits":
+                send = self.generals
+            else:
+                send.append(name.upper())
+                
             items = self.db.gatherGeneral(send)
             items = sorted(items)
             for i in items:
@@ -236,7 +261,7 @@ class Display:
             if len(items) == 0 or send == "NEW":
                 for i in range (15):
                     items.append(None)
-            changeHelp(item)
+            changeHelp(items)
         # gets the abilities so as to show which characters the abilities effect
         def abilGet(item):
             self.dicL = []
@@ -248,13 +273,15 @@ class Display:
             do = ""
             spch = False
             inName = False
+            hidden = False
             for char in item:
                 if not spch:
                     if char == "<":
                         inName = True
                         spch = True
                     else:
-                        newText += char
+                        if not hidden:
+                            newText += char
                         if inName:
                             search += char
                 else:
@@ -264,11 +291,24 @@ class Display:
                             do = None
                         if ty == "POWER":
                             self.powers.append(search)
-                        self.dicL.append((ty,search,do))
+                        if ty == "HIDDEN" or ty == "HID":
+                            if hidden == True:
+                                hidden = False
+                            else:
+                                hidden = True
+                        else:
+                            self.dicL.append((ty,search,do))
                         ty = ""
                         search = ""
                         do = ""
                     elif char == ">":
+                        if ty == "HIDDEN" or ty == "HID":
+                            if hidden:
+                                hidden = False
+                            else:
+                                hidden = True
+                            inName = False
+                            ty = ""
                         spch = False
                     elif char == "/":
                         inName = False
@@ -303,28 +343,31 @@ class Display:
                             enemies.add_command(label=i[1][0], state=DISABLED)
                             enemies.add_command(label=i[0], command=partial(menuHelp, i[0]), background = CustColorChange(self.db.display(i[0])))
         # adds new characters
-        def add():
-            if name.get("1.0",END).isspace() or general.get("1.0",END).isspace():
-                return
-            send=[]
-            send.append(name.get("1.0",END).upper().strip("\n"))
-            send.append(general.get("1.0",END).upper().strip("\n"))
-            send.append(race.get("1.0",END).upper().strip("\n"))
-            send.append(ty.get("1.0",END).upper().strip("\n"))
-            send.append(cla.get("1.0",END).upper().strip("\n"))
-            send.append(personality.get("1.0",END).upper().strip("\n"))
-            send.append(size.get("1.0",END).upper().strip("\n"))
-            send.append(life.get("1.0",END).upper().strip("\n"))
-            send.append(move.get("1.0",END).upper().strip("\n"))
-            send.append(ran.get("1.0",END).upper().strip("\n"))
-            send.append(attack.get("1.0",END).upper().strip("\n"))
-            send.append(defense.get("1.0",END).upper().strip("\n"))
-            send.append(points.get("1.0",END).upper().strip("\n"))
-            if abilities['state'] == "normal":
-                send.append(abilities.get("1.0",END).upper().strip("\n"))
+        def add(send=[]):
+            if send == []:
+                change = True
+                if name.get("1.0",END).isspace() or general.get("1.0",END).isspace():
+                    return
+                send.append(name.get("1.0",END).upper().strip("\n"))
+                send.append(general.get("1.0",END).upper().strip("\n"))
+                send.append(race.get("1.0",END).upper().strip("\n"))
+                send.append(ty.get("1.0",END).upper().strip("\n"))
+                send.append(cla.get("1.0",END).upper().strip("\n"))
+                send.append(personality.get("1.0",END).upper().strip("\n"))
+                send.append(size.get("1.0",END).upper().strip("\n"))
+                send.append(life.get("1.0",END).upper().strip("\n"))
+                send.append(move.get("1.0",END).upper().strip("\n"))
+                send.append(ran.get("1.0",END).upper().strip("\n"))
+                send.append(attack.get("1.0",END).upper().strip("\n"))
+                send.append(defense.get("1.0",END).upper().strip("\n"))
+                send.append(points.get("1.0",END).upper().strip("\n"))
+                if abilities['state'] == "normal":
+                    send.append(abilities.get("1.0",END).upper().strip("\n"))
+                else:
+                    send.append(self.oldText)
+                send.append(quantity.get("1.0",END).upper().strip("\n"))
             else:
-                send.append(self.oldText)
-            send.append(quantity.get("1.0",END).upper().strip("\n"))
+                change = False
             self.db.add(send[0],
                         send[1],
                         send[2],
@@ -340,7 +383,7 @@ class Display:
                         send[12],
                         send[13],
                         send[14])
-            deleteMenu()
+            if change: deleteMenu()
 
         ## for setting up the specials tab on the right
         def specialSetup():
@@ -417,6 +460,8 @@ class Display:
         window.config(menu=menu)
         filemenu = Menu(menu, tearoff=0)
         file = Menu(menu, tearoff=0)
+        allUnits = Menu(menu, tearoff=0)
+        create (allUnits, "allUnits")
         utgar = Menu(menu, tearoff=0)
         create(utgar, "utgar")
         jandar = Menu(menu, tearoff=0)
@@ -437,9 +482,11 @@ class Display:
         menu.add_cascade(label="File",menu=file)
         file.add_command(label="New", command=empty)
         file.add_command(label="Save", command = add)
+        file.add_command(label="Empty all", command = emptyAll)
         
         menu.add_cascade(label="Factions", menu=filemenu)
-        
+
+        filemenu.add_cascade(label="All", menu = allUnits, background=CustColorChange(("","allUnits")))
         filemenu.add_cascade(label="Jandar", menu = jandar, background=CustColorChange(("","jandar")))
         filemenu.add_cascade(label="Ullar", menu = ullar, background=CustColorChange(("","ullar")))
         filemenu.add_cascade(label="Vydar", menu = vydar, background=CustColorChange(("","vydar")))
@@ -590,7 +637,7 @@ class Display:
             text = "Load",
             width = 5,
             height = 1,
-            command = read
+            command = enterHelp
             )
         delete = Button(
             window,
@@ -614,73 +661,63 @@ class Display:
             )
 
         co = 1
-##        name.pack()
+
         lname.grid(row=0, column=co, columnspan=2,sticky = N+W+E+S)
         name.grid(row=1, column=co, columnspan=2,sticky = N+W+E+S)
         lgeneral.grid(row=3,column=co, columnspan=2,sticky=N+W+E+S)
         general.grid(row=4,column=co,columnspan=2,sticky=N+W+E+S)
         lrace.grid(row=5,column=co,sticky=N+W+E+S)
         race.grid(row=6,column=co,sticky=W)
-##        ty.pack()
+
         lty.grid(row=7,column=co,sticky=N+W+E+S)
         ty.grid(row=8,column=co,sticky=W)
-##        cla.pack()
+
         lcla.grid(row=9,column=co,sticky=N+W+E+S)
         cla.grid(row=10,column=co,sticky=W)
-##        personality.pack()
+
         lpersonality.grid(row=11,column=co,sticky=N+W+E+S)
         personality.grid(row=12,column=co,sticky=W)
-##        size.pack()
+
         lsize.grid(row=13,column=co,sticky=N+W+E+S)
         size.grid(row=14,column=co,sticky=W)
         lsearch.grid(row=15,column=co,sticky=N+W+E+S)
         search.grid(row=16,column=co,sticky=W)
         co +=1
-        ##        save.pack()
+
         save.grid(row=15,column=co,sticky=N+W+E+S)
-##        load.pack()
+
         load.grid(row=16,column=co,sticky=N+W+E+S)
-##        life.pack()
+
         llife.grid(row=5,column=co,sticky=N+W+E+S)
         life.grid(row=6,column=co,sticky=W)
-##        move.pack()
+
         lmove.grid(row=7,column=co,sticky=N+W+E+S)
         move.grid(row=8,column=co,sticky=W)
-##        ran.pack()
+
         lran.grid(row=9,column=co,sticky=N+W+E+S)
         ran.grid(row=10,column=co,sticky=W)
-##        attack.pack()
+
         lattack.grid(row=11,column=co,sticky=N+W+E+S)
         attack.grid(row=12,column=co,sticky=W)
-##        defense.pack()
+
         ldefense.grid(row=13,column=co,sticky=N+W+E+S)
         defense.grid(row=14,column=co,sticky=W)
         co += 1
-##        abilities.pack()
+
         labilities.grid(row=0, column=co, columnspan=2)
         abilities.grid(row=1,column=co,columnspan=2,rowspan=12)
-##        search.pack()
+
         delete.grid(row=16,column=co,sticky=N+W+E+S)
-##        points.pack()
+
         lpoints.grid(row=13,column=co,sticky=N+W+E+S)
         points.grid(row=14,column=co,sticky=N+W+E+S)
         co += 1
-##        quantity.pack()
+
         lquantity.grid(row=13,column=co,sticky=N+W+E+S)
         quantity.grid(row=14,column=co,sticky=N+W+E+S)
         edit.grid(row=15,column=co,sticky=N+W+E+S)
-##        ex.pack()
+
         ex.grid(row=16,column=co,sticky=N+W+E+S)
         co +=1
-##        buttons.pack()
-        window.mainloop()
 
-# allows this to be accesed from command prompt
-# if sys.argv has two or more items, used the 2nd item as the database entry
-# else, just set dis to be equal to Display()
-if len(sys.argv) >= 2:
-    dis = Display(sys.argv[1])
-else:
-    dis = Display()
-# display the card view
-dis.cardview()
+        window.mainloop()

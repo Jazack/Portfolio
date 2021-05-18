@@ -59,8 +59,9 @@ class ReadFiles:
         command = "SELECT * FROM units WHERE "
         parts = []
         ors = 0
-        added = False
         n = ""
+        counter = 0 #keeps count of location in new
+        new = [] # the new items
         # for loop to go through each tupple in items, and create a search based
         # on the tupples
         for tup in items:
@@ -68,7 +69,10 @@ class ReadFiles:
                 ntup = tup[1][:len(tup[1])-1]
             else:
                 ntup = tup[1][:]
-            if tup[2] == "OR":
+            if tup[2] == "NOR":
+                ors += 1
+                tup[2] = "N"
+            elif tup[2] == "OR":
                 ors += 1
             if tup[0] == "GRAN":
                 if tup[2] == "N":
@@ -82,7 +86,7 @@ class ReadFiles:
                     parts.append(tup[0][1:].lower() + "<=" + ntup)
             elif tup[0] == "RAN":
                 if tup[2] == "N":
-                    n += " AND " + tup[0][1:].lower() + "!=" + ntup
+                    n += " AND " + tup[0].lower() + "!=" + ntup
                 else:
                     parts.append(tup[0].lower() + "=" + ntup)
             elif tup[0] == "POW":
@@ -90,9 +94,30 @@ class ReadFiles:
                     n += " AND abilities NOT LIKE \"%<POWER>" + ntup + "<%\""
                 else:
                     parts.append(" abilities LIKE \"%<POWER>" + ntup + "<%\"")
+            elif tup[0] == "LIFE":
+                if tup[2] == "N":
+                    n += " AND " + tup[0].lower() + "!=" + ntup
+                else:
+                    parts.append(tup[0].lower() + "=" + ntup)
+            elif tup[0] == "ABIL":
+                if tup[2] == "N":
+                    n += " AND NOT instr (abilities,\"" + ntup + "\")"
+                else:
+                    parts.append(" AND instr (abilities,\"" + ntup + "\")")
+            elif tup[0] == "CLA":
+                if tup[2] == "N":
+                    n += " AND cla NOT LIKE \"" + ntup + "\" AND cla NOT LIKE \"" + ntup +"S\""
+                    
+                else:
+                    parts.append(tup[0].lower() + " LIKE \"" + ntup + "\"")
+                    ors += 1
+                    parts.append(tup[0].lower() + " LIKE \"" + ntup + "S\"")
+                    
+            elif ntup == "":
+                pass
             else:
                 if tup[2] == "N":
-                    n += " AND " + tup[0].lower() + " NOT LIKE \"%" + ntup + "%\""
+                    n += " AND " + tup[0].lower() + " NOT LIKE \"" + ntup + "%\""
                 else:
                     parts.append(tup[0].lower() + " LIKE \"%" + ntup + "%\"")
                 if tup[0] == "TY":
@@ -108,18 +133,27 @@ class ReadFiles:
                         else:
                             ors += 1
                             parts.append("ty LIKE \"%UNCOMMON%\"")
+            if tup[2] == "T":
+                new.append(list(itertools.combinations(parts, len(parts)-ors)))
+                parts.clear()
+                counter = counter + 1
+                ors = 0
+                n = ""
         # end of for loop tup
         # create every combination of the search terms
-        new = list(itertools.combinations(parts, len(parts)-ors))
+        new.append(list(itertools.combinations(parts, len(parts)-ors)))
         send = "" # this will be the item to add to the command
         # for loop to create the send item
-        for item in new:
-            for i in item:
-                send += i
-                if i != item[-1]:
-                    send += " AND "
-            send += n
-            if item != new[-1]:
+        for arr in new:
+            for item in arr:
+                for i in item:
+                    send += i
+                    if i != item[-1]:
+                        send += " AND "
+                send += n
+                if item != arr[-1]:
+                    send += " OR "
+            if arr != new[-1]:
                 send += " OR "
         # end of for loop item
         #finish formatting send
@@ -195,6 +229,15 @@ class ReadFiles:
         myDB.commit()
         myDB.close()
 
+    # function cleaner
+    #
+    # purpose: clean up the search to get rid of impossible types
+    # self - don't need to worry about this
+    # mes - the message that will be cleaned
+    def cleaner(self, mes):
+        pass
+
+    
     # function delete
     #
     # purpose: delete a named entry
@@ -258,13 +301,14 @@ class ReadFiles:
     #
     # purpose: to gather all the units that follow x general
     # self - don't need to worry about this
-    # general - the general whose army is being gathered
-    def gatherGeneral(self, general):
+    # genTup - the general(s) whose army is being gathered
+    def gatherGeneral(self, genTup):
         myDB = sqlite3.connect(self.db)
         cursor = myDB.cursor()
-        command = """SELECT * FROM units WHERE general=?"""
         ret = []
-        cursor.execute(command, (general,))
-        for row in cursor.fetchall():
-            ret.append(row[0])
+        for general in genTup:
+            command = """SELECT * FROM units WHERE general=?"""
+            cursor.execute(command, (general,))
+            for row in cursor.fetchall():
+                ret.append(row[0])
         return ret

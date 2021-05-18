@@ -17,7 +17,7 @@ class GatherItems:
         # set up the database item
         self.db = CardDatabaseMaker.ReadFiles(db)
 
-    ## gather's the the units that effect unit,
+    ## gather's the units that effect unit,
     ## separeted into if it's friendly, nuetral, or hostile
     def gather(self, name):
         ret = [] #ret[0] = friendly, [1] = nuetral, [2] = hostile
@@ -53,6 +53,7 @@ class GatherItems:
         search = ""
         ty = "" 
         do = ""
+        hidden = False
         spch = False
         inName = False
         # go through each char in the item, and sort it into usable information
@@ -73,11 +74,24 @@ class GatherItems:
                         powers.append((search,do))#combines the power with type
                         ret.append([])
                         ret[-1].append(powers[-1])
-                    dicL.append((ty,search,do))
+                    if ty == "HIDDEN" or ty == "HID":
+                        if hidden == True:
+                            hidden = False
+                        else:
+                           hidden = True
+                    else:
+                        dicL.append((ty,search,do))
                     ty = ""
                     search = ""
                     do = ""
                 elif char == ">":
+                    if ty == "HIDDEN" or ty == "HID":
+                            if hidden:
+                                hidden = False
+                            else:
+                                hidden = True
+                            inName = False
+                            ty = ""
                     spch = False
                 elif char == "/":
                     inName = False
