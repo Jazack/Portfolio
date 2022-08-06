@@ -16,7 +16,9 @@ class GatherItems:
     def __init__(self, db):
         # set up the database item
         self.db = CardDatabaseMaker.ReadFiles(db)
-
+    def getAll(self):
+        return self.db.getAll()
+    
     ## gather's the units that effect unit,
     ## separeted into if it's friendly, nuetral, or hostile
     def gather(self, name):
@@ -40,7 +42,6 @@ class GatherItems:
             # end of for loop eff
         # end of for loop i
         return ret
-
     ## gets the abilities of the character of name
     ## name - the name of the character being accesed
     def abilGet(self, name):
@@ -128,3 +129,29 @@ class GatherItems:
             # if there is one with a power and none else,
             pass
         return ret
+
+    # display, set to be a go between so that not all files need this and cardDatabaseMaker
+    def display(self, name):
+        return self.db.display(name)
+    def displayRecord(self, name):
+        return self.db.displayRecord(name)
+    def getAllRecords(self):
+        return self.db.getAllRecords()
+    def dropRecords(self):
+        self.db.dropRecords()
+    def startRecords(self):
+        self.db.startRecords()
+        
+    def recordDelete(self, name):
+        self.db.recordDelete(name)
+    # returns the wins and losses of it
+    def winLoss(self, name):
+        return self.db.dispWinsLosses(name)
+    # adds a win loss element
+    def addWinLoss(self, name, worth = 0.0, wins = 0, losses = 0, ratio = 'N/A'):
+        self.db.addRecord(name, wins, losses, ratio, worth)
+    def getBandWithUnit(self, name):
+        return self.db.getWithUnit(name)
+
+
+    

@@ -13,30 +13,49 @@ import sys
 import CardDatabaseMaker
 import Gather
 import popup
-    
+import pointEval
+
 # class Display
 #
 # purpose: to display the elements
 class Display:
     # pre-define the slots
-    __slots__ = ['oldText', 'pu', 'db', 'gt', "dicL", "connected", "powers", "specials", "tabs", "eff", 'nTabs', 'nSpecials', 'generals']
+    __slots__ = ['oldText', 'pu', 'db', 'gt', 'pe', "dicL", "connected",
+                 "powers", "specials", "tabs", "eff", 'nTabs', 'nSpecials',
+                 'generals', 'start', 'opt', 'loc','database', 'extra']
 
     # function: __init__
     # self - don't need to worry about this
     # db - the database being used, if no database is give, use default units.db
-    def __init__(self, db="units.db"):
-
+    def __init__(self, db="units.db", unit = False):
+        self.database = db
         self.db = CardDatabaseMaker.ReadFiles(db)
         self.gt = Gather.GatherItems(db)
         self.pu = popup.PopUp()
+        self.pe = pointEval.worthEval(db)
         self.generals = ["JANDAR", "ULLAR", "VYDAR", "EINAR", "UTGAR", "VALKRILL", "AQUILLA", "MARVEL"]
+        if unit:
+            self.extra = True
+            self.start = unit[0]
+            self.loc = unit[1]
+            self.opt = 3
+        else:
+            self.extra = False
+            self.start = False
+            self.opt = ''
+            self.loc = False
+        
 
     
     # function: cardview
     #
     # purpose: set up and run the GUI
-    def cardview(self):
+    def cardview(self, window, starter = False):
+        
+##        if type(starter) != bool and len(starter) > 1:
+##            starter = starter[0]
         title = "Heroscape Database"
+        firstRun = True
         ## used to set to zero all items
         def emptyAll():
             # make a screen to warn about this
@@ -196,7 +215,7 @@ class Display:
                 text.config(state=DISABLED)
         # destroy's the window
         def destroy():
-            window.destroy()
+            window.quit()
         # empties everything
         def empty():
             items=[]
@@ -254,13 +273,18 @@ class Display:
             if self.eff != None:
                 synergy()
         # reads in the search bar item and displays it if it exists
-        def read():
-            send = search.get("1.0", END).upper().strip("\n")
+        def read(send = False):
+            reset = True
+            if send == False:
+                reset = False
+                send = search.get("1.0", END).upper().strip("\n")
             items=[]
             items = self.db.display(send)
             if len(items) == 0 or send == "NEW":
                 for i in range (15):
                     items.append(None)
+            if reset:
+                send = False
             changeHelp(items)
         # gets the abilities so as to show which characters the abilities effect
         def abilGet(item):
@@ -292,10 +316,7 @@ class Display:
                         if ty == "POWER":
                             self.powers.append(search)
                         if ty == "HIDDEN" or ty == "HID":
-                            if hidden == True:
-                                hidden = False
-                            else:
-                                hidden = True
+                            hidden = not hidden
                         else:
                             self.dicL.append((ty,search,do))
                         ty = ""
@@ -303,10 +324,7 @@ class Display:
                         do = ""
                     elif char == ">":
                         if ty == "HIDDEN" or ty == "HID":
-                            if hidden:
-                                hidden = False
-                            else:
-                                hidden = True
+                            hidden = not hidden
                             inName = False
                             ty = ""
                         spch = False
@@ -319,7 +337,6 @@ class Display:
             self.connected = self.db.custSearchHelp(self.dicL)
             if self.connected != None:
                 specialSetup()
-
             return newText
         # for setting up the synergy section on the left
         def synergy():
@@ -346,8 +363,7 @@ class Display:
         def add(send=[]):
             if send == []:
                 change = True
-                if name.get("1.0",END).isspace() or general.get("1.0",END).isspace():
-                    return
+                if name.get("1.0",END).isspace() or general.get("1.0",END).isspace(): return
                 send.append(name.get("1.0",END).upper().strip("\n"))
                 send.append(general.get("1.0",END).upper().strip("\n"))
                 send.append(race.get("1.0",END).upper().strip("\n"))
@@ -363,11 +379,10 @@ class Display:
                 send.append(points.get("1.0",END).upper().strip("\n"))
                 if abilities['state'] == "normal":
                     send.append(abilities.get("1.0",END).upper().strip("\n"))
-                else:
-                    send.append(self.oldText)
+                else: send.append(self.oldText)
                 send.append(quantity.get("1.0",END).upper().strip("\n"))
-            else:
-                change = False
+                
+            else: change = False
             self.db.add(send[0],
                         send[1],
                         send[2],
@@ -383,6 +398,12 @@ class Display:
                         send[12],
                         send[13],
                         send[14])
+            # see if the item is in table records
+            temp = self.db.displayRecord(send[0])
+            if temp == []:
+                worth = self.pe.formula(send[0])
+                self.db.addRecord(send[0], 0, 0, 'N\A', worth)
+            for i in range(0,15): send.pop()
             if change: deleteMenu()
 
         ## for setting up the specials tab on the right
@@ -410,7 +431,6 @@ class Display:
             
             self.tabs.append(Frame(self.tabs[1]))
             self.tabs[1].create_window((0,0), window=self.tabs[3],anchor='nw')
-        
             for i in range (len(self.powers)):
                 if self.connected[i] != None:
                     tempL = Label(self.tabs[3], text=self.powers[i])
@@ -453,7 +473,8 @@ class Display:
              
 
         #window
-        window = Tk()
+##        window = Tk()
+        window.geometry('')
         #menu
         window.bind_class("Text", "<Tab>",focus_next_window)
         menu = Menu(window)
@@ -509,7 +530,7 @@ class Display:
         window.grid_columnconfigure(5,weight=1)
         window.grid_rowconfigure(0,weight=1)
         window.title(title)
-        buttons = Frame(window)
+##        buttons = Frame(window)
         lname = Label(window, text = "NAME:")
         lgeneral = Label(window, text = "GENERAL:")
         lrace = Label(window, text = "RACE:")
@@ -630,7 +651,7 @@ class Display:
             text = "Save",
             width = 5,
             height = 1,
-            command = add
+            command = partial(add, [])
             )
         load = Button(
             window,
@@ -719,5 +740,12 @@ class Display:
 
         ex.grid(row=16,column=co,sticky=N+W+E+S)
         co +=1
-
+        if firstRun:
+            firstRun = False
+            if starter != False:
+                read(starter[0])
+                
         window.mainloop()
+        if self.extra:
+            return [self.database, self.opt, starter]
+        return [False, True]
