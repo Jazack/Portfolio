@@ -68,6 +68,7 @@ class worthEval:
 
     parameters:
     self ----- this can be ignored
+    window --- the window to be used
     """
     def reset(self, window):
 ##        self.gt.dropRecords()
@@ -81,6 +82,9 @@ class worthEval:
 ##            count += 1
         self.breaker = False
         text = StringVar()
+        """
+        startUpdate: updates each unit
+        """
         def startUpdate():
 ##            self.gt.dropRecords()
 ##            self.gt.startRecords()
@@ -94,6 +98,9 @@ class worthEval:
                 worth = round(worth, 2)
                 self.gt.addWinLoss(unit, worth)
                 count += 1
+        """
+        stop: stops the reset function
+        """
         def stop():
             self.breaker = True
             window.quit()
@@ -120,6 +127,7 @@ class worthEval:
 
     parameters:
     self ----- this can be ignored
+    window --- the window to be used
     """
     def update(self, window):
         self.breaker = False
@@ -131,9 +139,13 @@ class worthEval:
                 if self.breaker == True:
                     return
                 text.set('updating ' + unit[0] + ' and have done ' + str(count) + ' out of ' + str(len(units)))
-                worth = self.formula(unit[0], unit[1], unit[2])
+                worth = self.formula(unit[0])#, unit[1], unit[2])
                 worth = round(worth, 2)
-                self.gt.addWinLoss(unit[0], worth, unit[1], unit[2], unit[3])
+                if unit[1] != 0 or unit[2] != 0:
+                    ratio = str(unit[1]) + '/' + str(unit[1] + unit[2])
+                else:
+                    ratio = 'N/A'
+                self.gt.addWinLoss(unit[0], worth, unit[1], unit[2], ratio)
                 count += 1
         def stop():
             self.breaker = True
@@ -158,11 +170,13 @@ class worthEval:
             
         
     """
-    this is to find the worth of each card
+    formula: this is to find the worth of each card
 
-    standard worth is going to be total wins/losses, if 0/0 then it will be the standard worth, so as to try and use every unit and learn
+    parameters:
+    self ----- this can be ignored
+    name ----- the name of the unit to evaluate
     """
-    def formula(self, name, sWin = False, sLoss = False):
+    def formula(self, name):
         winLoss = self.gt.winLoss(name)
         add = False
         if not winLoss:
@@ -171,7 +185,7 @@ class worthEval:
         if winLoss[1] == 0 and winLoss[2] == 0:
             Total = self.stanWorth
         else:
-            Total = winLoss[1]/(winLoss[1] + winLoss[2]) - 0.5
+            Total = (winLoss[1]/(winLoss[1] + winLoss[2]) - 0.5) * (1 + (winLoss[1] + winLoss[2] - 1)/100)
         Total = round(Total, 2)
         return Total
 
@@ -207,7 +221,12 @@ class worthEval:
                         units.append(temp[0])
         return units
     """
-    this is to find the worth of each card in an army
+    higherFormula: this is to find the worth of each card in an army, adjusted for the current units in the army
+
+    parameters:
+    self ----- this can be ignored
+    name ----- the name of the unit being evaluated
+    chosen --- the units that have already been chosen
     """
     def higherFormula(self, name, chosen = {}):
         """

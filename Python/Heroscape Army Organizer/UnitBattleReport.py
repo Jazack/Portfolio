@@ -50,11 +50,11 @@ class battleReport:
             if do == AW:
                 # get worth
                 ratio = str(self.disp[1] + 1) + '/' + str(self.disp[1] + self.disp[2] + 1)
-                worth = self.pe.formula(varUnit.get(), self.disp[1] + 1, self.disp[2])
+                worth = self.pe.formula(varUnit.get())#, self.disp[1] + 1, self.disp[2])
                 self.gt.addWinLoss(varUnit.get(), worth,  self.disp[1] + 1, self.disp[2], ratio)
             elif do == AL:
                 ratio = str(self.disp[1]) + '/' + str(self.disp[1] + self.disp[2] + 1)
-                worth = self.pe.formula(varUnit.get(), self.disp[1], self.disp[2] + 1)
+                worth = self.pe.formula(varUnit.get())#, self.disp[1], self.disp[2] + 1)
                 self.gt.addWinLoss(varUnit.get(), worth,  self.disp[1], self.disp[2] + 1, ratio)
             elif do == RW:
                 if self.disp[1] <= 0:
@@ -63,7 +63,7 @@ class battleReport:
                     ratio = 'N/A'
                 else:
                     ratio = str(self.disp[1] - 1) + '/' + str(self.disp[1] + self.disp[2] - 1)
-                worth = self.pe.formula(varUnit.get(), self.disp[1] - 1, self.disp[2])
+                worth = self.pe.formula(varUnit.get())#, self.disp[1] - 1, self.disp[2])
                 self.gt.addWinLoss(varUnit.get(), worth,  self.disp[1] - 1, self.disp[2], ratio)
             elif do == RL:
                 if self.disp[2] <= 0:
@@ -72,7 +72,7 @@ class battleReport:
                     ratio = 'N/A'
                 else:
                     ratio = str(self.disp[1]) + '/' + str(self.disp[1] + self.disp[2] - 1)
-                worth = self.pe.formula(varUnit.get(), self.disp[1], self.disp[2] - 1)
+                worth = self.pe.formula(varUnit.get())#, self.disp[1], self.disp[2] - 1)
                 self.gt.addWinLoss(varUnit.get(), worth,  self.disp[1], self.disp[2] - 1, ratio)
             setUp()
         AW = "ADD WIN"

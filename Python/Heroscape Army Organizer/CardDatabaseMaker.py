@@ -93,6 +93,12 @@ class ReadFiles:
                                 quant15 TEXT NULL,
                                 PRIMARY KEY (name))
                           '''
+        cursor.execute(CREATE_TABLE)
+        CREATE_TABLE = '''CREATE TABLE IF NOT EXISTS generals(
+                                name TEXT,
+                                color TEXT,
+                                rank INTEGER,
+                                PRIMARY KEY (name))'''
 
         cursor.execute(CREATE_TABLE)
         myDB.commit()
@@ -488,11 +494,15 @@ class ReadFiles:
         myDB.commit()
         myDB.close()
 
-    def updateRecord(self, name, wins, losses):
+    def updateRecord(self, name, wins, losses, worth):
         use = self.displayRecord(name)
         wins += use[1]
         losses += use[2]
-        self.addRecord(name, wins, losses, use[3], use[4])
+        if use[1] != 0 or use[2] != 0:
+            ratio = str(use[1]) + '/' + str(use[1] + use[2])
+        else:
+            ratio = 'N/A'
+        self.addRecord(name, wins, losses, ratio, worth)
 
 #""" --------------- bands table section --------------------- """
     def addBands(self, item):
@@ -525,7 +535,7 @@ class ReadFiles:
     def removeBands(self, name):
         myDB = sqlite3.connect(self.db)
         cursor = myDB.cursor()
-        command = """DELETE FROM bands WHERE name=?"""
+        command = """DELETE FROM bands WHERE name = ?"""
         # execute, commit, and close
         cursor.execute(command, (name,))
         myDB.commit()
@@ -540,7 +550,6 @@ class ReadFiles:
         for row in cursor.fetchall():
             for item in row:
                 ret.append(item)
-        myDB.commit()
         myDB.close()
         return ret
     def getWithUnit(self, name):
@@ -552,7 +561,6 @@ class ReadFiles:
         for row in cursor.fetchall():
             for item in row:
                 ret.append(item)
-        myDB.commit()
         myDB.close()
         return ret
     def getAllBands(self):
@@ -563,9 +571,78 @@ class ReadFiles:
         cursor.execute(command)
         for row in cursor.fetchall():
             ret.append(row)
-        myDB.commit()
+        myDB.close()
+        return ret
+#""" --------------- generals table section --------------------- """
+    def getAllGenerals(self):
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        ret = []
+        command = """SELECT * FROM generals"""
+        cursor.execute(command)
+        for row in cursor.fetchall():
+            ret.append(row[0])
+        myDB.close()
+        return ret
+
+    def getGeneralRank(self, general):
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        command = """SELECT rank FROM generals WHERE name = ?"""
+        cursor.execute(command, (general,))
+        ret = cursor.fetchall()
+        if len(ret) > 0:
+            ret = ret[0][0]
         myDB.close()
         return ret
     
+    def getGeneralColor(self, general):
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        command = """SELECT color FROM generals WHERE name = ?"""
+        cursor.execute(command, (general,))
+        ret = cursor.fetchall()
+        if len(ret) > 0:
+            ret = ret[0][0]
+        myDB.close()
+        return ret
 
-    
+    def addGeneral(self, general, color, rank):
+        INSERT_PARAM = """INSERT INTO generals
+                        (name, color, rank)
+                        VALUES (?, ?, ?)"""
+        data_tuple = (general, color, rank)
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        cursor.execute(INSERT_PARAM, data_tuple)
+        myDB.commit()
+        myDB.close()
+    def delGeneral(self, general):
+        # delete all the units first and then the general
+        toDelete = self.gatherGeneral(general)
+        for unit in toDelete:
+            self.delete(unit)
+        UPDATE_PARAM = """DELETE FROM generals WHERE name = ?"""
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        cursor.execute(UPDATE_PARAM, (general,))
+        myDB.commit()
+        myDB.close()
+        
+    def updateColor(self, general, color):
+        UPDATE_PARAM = """UPDATE generals SET color = ? WHERE name = ?"""
+        data_tuple = (color, general)
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        cursor.execute(UPDATE_PARAM, data_tuple)
+        myDB.commit()
+        myDB.close()
+
+    def updateColor(self, general, rank):
+        UPDATE_PARAM = """UPDATE generals SET rank = ? WHERE name = ?"""
+        data_tuple = (rank, general)
+        myDB = sqlite3.connect(self.db)
+        cursor = myDB.cursor()
+        cursor.execute(UPDATE_PARAM, data_tuple)
+        myDB.commit()
+        myDB.close()

@@ -50,7 +50,7 @@ class allDisp:
         self.set = 0
         self.perPage = 10
         self.description = ''
-        self.opt = False
+        self.opt = 21
         self.unit = False
         self.specSetup = False
         self.general = []
@@ -434,4 +434,4 @@ class allDisp:
         mainloop()
         if self.unit:
             return [self.database, self.opt, [self.unit, self.set, self.sortBy, self.general, self.perPage]]
-        return [False, True]
+        return [self.database, self.opt]

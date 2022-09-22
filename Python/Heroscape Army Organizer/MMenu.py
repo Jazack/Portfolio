@@ -9,6 +9,7 @@ from tkinter import *
 from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
+from tkinter import messagebox
 from functools import partial
 import os
 ##from Image import ImageTk,Image
@@ -18,7 +19,7 @@ class Menu:
     def __init__(self):
         self.db = ""
         self.opt = False
-    def mme(self, default, window):
+    def mme(self, default, window, defaultDB = ''):
         # constants:
         CARD_V = "CARD VIEWER"
         COPY_D = "COPY DATABASE"
@@ -30,6 +31,7 @@ class Menu:
         AG = "ARMY GENERATOR"
         UP = "UPDATE VALUES"
         AD = "ARMY DISPLAY"
+        UPDATE = "UPDATE DATABASE"
         N_CARD_V = 1
         N_COPY_D = 2
         N_CARD_S = 3
@@ -40,6 +42,7 @@ class Menu:
         N_AG = 8
         N_UP = 9
         N_AD = 10
+        N_UPDATE = 20
 #--------------------------------------------START OF TKINTER FUNCTIONS--------------------------------------------
         self.opt = False
         # functions for tkinter window
@@ -48,6 +51,9 @@ class Menu:
             self.opt = False
             window.quit()
 ##            window.destroy()
+        def showHelp():
+            mes = """Select the button under DATABASE to change the database\nSelect the button under SUB PROGRAM to change what you will do\nSelect Load to load the SUB PROGRAM with the DATABASE\nSelect Help for this menu\nSelect Exit to exit the program\n\nThis version is 1.0.0.1"""
+            messagebox.showinfo('HELP', mes)
         def loadHelp(event = None):
             self.db = DBfirst.get()
             self.opt = pFirst.get()
@@ -71,12 +77,14 @@ class Menu:
                 self.opt = N_UP
             elif self.opt == AD:
                 self.opt = N_AD
+            elif self.opt == UPDATE:
+                self.opt = N_UPDATE
             window.quit()
 ##            window.destroy()
         
 #--------------------------------------------START OF TKINTER WINDOW--------------------------------------------
 ##        window = Tk()
-        window.geometry("270x100")
+        window.geometry("270x127")
         window.title("HAB")
         # menu
 ##        window.bind_class("Text", "<Tab>",focus_next_window)
@@ -91,9 +99,12 @@ class Menu:
         files = [_ for _ in os.listdir(filePath) if _.endswith(fileExt)]
         files.append("NEW")
         DBfirst = StringVar(window)
-        DBfirst.set(default)
+        if defaultDB == '':
+            DBfirst.set(default)
+        else:
+            DBfirst.set(defaultDB)
 
-        progs = [CARD_V, CARD_S , AG, AD, UBR, UP, COPY_D, MERGER, SET_D, RESETWL]
+        progs = [CARD_V, CARD_S , AG, AD, UBR, UP, COPY_D, MERGER, SET_D, RESETWL]#, UPDATE]
         pFirst = StringVar(window)
         pFirst.set(progs[0])
         
@@ -125,6 +136,13 @@ class Menu:
             height = 1,
             command = loadHelp
             )
+        hel = Button(
+            window,
+            text = "Help",
+            width = 15,
+            height = 1,
+            command = showHelp
+            )
         ex = Button(
             window,
             text = "Exit",
@@ -139,10 +157,12 @@ class Menu:
         lDOptions.grid(row=1, column=co, sticky =N+W+E+S)
         tDOptions.grid(row=2, column=co, sticky =N+W+E+S)
         load.grid(row=3, column = co, sticky = N+W+E+S)
+        ex.grid(row=4, column = co, columnspan = 3, sticky = N+W+E+S)
         co = co + 1
         lWOptions.grid(row = 1, column = co, sticky = N+W+E+S)
         tWOptions.grid(row = 2, column = co, sticky = N+W+E+S)
-        ex.grid(row=3, column = co, sticky = N+W+E+S)
+        hel.grid(row = 3, column = co, sticky = N+W+E+S)
+        
 #--------------------------------------------END OF TKINTER WINDOW--------------------------------------------
         mainloop()
         return [self.db, self.opt]

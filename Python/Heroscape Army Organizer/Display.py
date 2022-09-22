@@ -7,13 +7,17 @@ from tkinter import *
 from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
+from tkinter import messagebox
+from tkinter import simpledialog
 from functools import partial
 import sys
+import threading
 # import additional scripts
 import CardDatabaseMaker
 import Gather
 import popup
 import pointEval
+import new
 
 # class Display
 #
@@ -22,18 +26,34 @@ class Display:
     # pre-define the slots
     __slots__ = ['oldText', 'pu', 'db', 'gt', 'pe', "dicL", "connected",
                  "powers", "specials", "tabs", "eff", 'nTabs', 'nSpecials',
-                 'generals', 'start', 'opt', 'loc','database', 'extra']
+                 'generals', 'general', 'start', 'opt', 'loc','database', 'extra', 'threads']
 
-    # function: __init__
-    # self - don't need to worry about this
-    # db - the database being used, if no database is give, use default units.db
+    """
+    __init__:  sets up the parameters
+
+    parameters:
+    self ----- this can be ignored
+    db ------- the database to be used, if no databse is given, use the default units.db
+    unit ----- the unit to load
+    """
     def __init__(self, db="units.db", unit = False):
         self.database = db
         self.db = CardDatabaseMaker.ReadFiles(db)
         self.gt = Gather.GatherItems(db)
         self.pu = popup.PopUp()
         self.pe = pointEval.worthEval(db)
-        self.generals = ["JANDAR", "ULLAR", "VYDAR", "EINAR", "UTGAR", "VALKRILL", "AQUILLA", "MARVEL"]
+        self.general = self.db.getAllGenerals()
+        self.generals = []
+        for item in self.general:
+            self.generals.append([item, self.db.getGeneralRank(item)])
+        self.general = []
+        for item in self.generals:
+            self.general.append(item[0])
+        sorting = lambda x : (x[1])
+        self.generals = sorted(self.generals, key = sorting)
+        self.threads = {}
+##        print(self.generals)
+##        self.generals = ["JANDAR", "ULLAR", "VYDAR", "EINAR", "UTGAR", "VALKRILL", "AQUILLA", "MARVEL"]
         if unit:
             self.extra = True
             self.start = unit[0]
@@ -42,20 +62,92 @@ class Display:
         else:
             self.extra = False
             self.start = False
-            self.opt = ''
+            self.opt = 21
             self.loc = False
         
 
     
-    # function: cardview
-    #
-    # purpose: set up and run the GUI
+    """
+    cardview: displays the cards and runs the GUI
+
+    parameters:
+    self ----- this can be ignored
+    window --- the window that is to be used
+    starter -- the starter unit
+    """
     def cardview(self, window, starter = False):
         
 ##        if type(starter) != bool and len(starter) > 1:
 ##            starter = starter[0]
         title = "Heroscape Database"
         firstRun = True
+
+        ## used to add generals
+        def addGeneral():
+            try:
+                newGeneral = simpledialog.askstring(title="New General", prompt="Name of the new general:")
+                if newGeneral == "":
+                    raise Exception("NO NAME GIVEN")
+                elif newGeneral == False:
+                    return
+                rank = self.generals[-1][1] + 1
+                color = "white"
+                newGeneral = newGeneral.upper()
+                self.db.addGeneral(newGeneral, color, rank)
+                self.generals.append([newGeneral, rank])
+                self.general.append(newGeneral)
+                updateGenerals()
+                messagebox.showinfo("SUCCESS", "Successfully added your general")
+            except:
+                print("Unexpected error: ", sys.exc_info()[0])
+                print("Message: ", sys.exc_info()[1])
+            return
+        ## used to delete a general
+        def delGeneral(gen):
+            mes = "WARNING! THIS CANNOT BE UNDONE!\nALL FIGURES UNDER THE GENERAL WILL BE DELETED!\nCONTINUE?"
+            if messagebox.askokcancel('Delete General', mes):
+                i = 0
+                for general in self.generals:
+                    if gen in general:
+                        break
+                    i += 1
+                self.generals.pop(i)
+                self.general.remove(gen)
+                i = 0
+                while True:
+                    if i in self.threads:
+                        i += 1
+                    else:
+                        break
+                self.threads[i] = threading.Thread(target = delGeneralHelper, args = (gen, i))
+                self.threads[i].start()
+            else:
+                print("cancelled")
+            return
+        def delGeneralHelper(gen, i):
+            toDel = self.db.gatherGeneral(gen)
+            for unit in toDel:
+                print('deleting ', end='')
+                print(unit)
+                self.db.delete(unit)
+            self.db.delGeneral(gen)
+            updateGenerals()
+            deleteMenu(gen)
+            messagebox.showinfo("SUCCESS", "Successfully deleted the general")
+            return
+
+        ## used to help with keeping track of the generals
+        def updateGenerals():
+            filemenu.delete(0, 'last')
+            fileDelGenerals.delete(0, 'last')
+            filemenu.add_cascade(label="All", menu = allUnits, background=CustColorChange(("","allUnits")))
+            create (allUnits, "allUnits")
+            for general in self.generals:
+                myVarsFiles[general[0]] = Menu(menu, tearoff = 0)
+                create(myVarsFiles[general[0]], general[0])
+                use = general[0][0] + general[0][1:].lower()
+                filemenu.add_cascade(label = use, menu = myVarsFiles[general[0]], background=CustColorChange(("",general[0])))
+                fileDelGenerals.add_command(label = use, command = partial(delGeneral, general[0]))
         ## used to set to zero all items
         def emptyAll():
             # make a screen to warn about this
@@ -73,99 +165,75 @@ class Display:
         ## used to drop items
         def drop():
             send = name.get("1.0",END).upper().strip("\n")
+            if self.db.display(send):
+                mes = 'Are you sure you want to delete '
+                mes += send + '?'
+                if not messagebox.askokcancel('ABOUT TO DELETE', mes):
+                    return
+            else:
+                messagebox.showinfo('NO DATA', 'There is no unit to delete')
+                return
             self.db.delete(send)
             deleteMenu()
+            messagebox.showinfo("SUCCESS", "Unit deleted successfully")
         ## used to change the color of non database items
         def CustColorChange(group):
             send = group[1].lower()#general.get("1.0",END).lower().strip("\n")
             if len(send) == 0:
                 return
-            nsend = send[0].upper() + send[1:]
-            #because python apparently does not have
-            #switch statements
-            color = "white"
-            if nsend == "Jandar":
-                color = "deep sky blue"
-            elif nsend == "Ullar":
-                color = "green"
-            elif nsend =="Einar":
-                color = "orange"
-            elif nsend =="Vydar":
-                color = "slate grey"
-            elif nsend =="Utgar":
-                color = "red"
-            elif nsend =="Marvel":
-                color = "yellow2"
-            elif nsend =="Aquilla":
-                color = "dark goldenrod"
-            elif nsend =="Valkrill":
-                color = "gold4"
+            nsend = send.upper()# + send[1:]
+            color = self.db.getGeneralColor(nsend)
+            if color == []:
+                color = "white"
             return color
         ## used to change the color of database items
         def colorChange():
             send = general.get("1.0",END).lower().strip("\n")
-            nsend = send[0].upper() + send[1:]
-            #because python apparently does not have
-            #switch statements
-            color = "white"
-            if nsend == "Jandar":
-                window.configure(background="deep sky blue")
-                color = "deep sky blue"
-            elif nsend == "Ullar":
-                window.configure(background="green")
-                color = "green"
-            elif nsend =="Einar":
-                window.configure(background="orange")
-                color = "orange"
-            elif nsend =="Vydar":
-                window.configure(background="slate grey")
-                color = "slate grey"
-            elif nsend =="Utgar":
-                window.configure(background="red")
-                color = "red"
-            elif nsend =="Marvel":
-                window.configure(background="yellow2")
-                color = "yellow2"
-            elif nsend =="Aquilla":
-                window.configure(background="dark goldenrod")
-                color = "dark goldenrod"
-            elif nsend =="Valkrill":
-                window.configure(background="gold4")
-                color = "gold4"
+            nsend = send.upper()# + send[1:]
+            color = self.db.getGeneralColor(nsend)
+            if color == []:
+                color = "white"
+            window.configure(background=color)
             for wid in widgets:
                 wid.configure(bg=color)
         # used to delete menus 
-        def deleteMenu():
-            send = general.get("1.0",END).lower().strip("\n")
-            nsend = send[0].upper() + send[1:]
+        def deleteMenu(nsend = False):
+            if not nsend:
+                send = general.get("1.0",END).lower().strip("\n")
+                nsend = send.upper()# + send[1:]
             #because python apparently does not have
             #switch statements
             allUnits.delete(0, 'last')
             create(allUnits, "allUnits")
-            if nsend == "Jandar":
-                jandar.delete(0, 'last')
-                create(jandar, "jandar")
-            elif nsend == "Ullar":
-                ullar.delete(0, 'last')
-                create(ullar, "Ullar")
-            elif nsend =="Einar":
-                einar.delete(0, 'last')
-                create(einar, "Einar")
-            elif nsend =="Vydar":
-                vydar.delete(0, 'last')
-                create(vydar, "vydar")
-            elif nsend =="Utgar":
-                utgar.delete(0, 'last')
-                create(utgar, "Utgar")
-            elif nsend =="Marvel":
-                marvel.delete(0, 'last')
-                create(marvel, "Marvel")
-            elif nsend =="Aquilla":
-                aquilla.delete(0, 'last')
-                create(aquilla, "Aquilla")
-            elif nsend =="Valkrill":
-                valkrill.delete(0, 'last')
-                create(valkrill, "Valkrill")
+            for key in myVarsFiles.keys():
+                if nsend == key:
+                    myVarsFiles[key].delete(0, 'last')
+                    create(myVarsFiles[key], key)
+                    break
+##            if nsend == "Jandar":
+##                jandar.delete(0, 'last')
+##                create(jandar, "jandar")
+##            elif nsend == "Ullar":
+##                ullar.delete(0, 'last')
+##                create(ullar, "Ullar")
+##            elif nsend =="Einar":
+##                einar.delete(0, 'last')
+##                create(einar, "Einar")
+##            elif nsend =="Vydar":
+##                vydar.delete(0, 'last')
+##                create(vydar, "vydar")
+##            elif nsend =="Utgar":
+##                utgar.delete(0, 'last')
+##                create(utgar, "Utgar")
+##            elif nsend =="Marvel":
+##                marvel.delete(0, 'last')
+##                create(marvel, "Marvel")
+##            elif nsend =="Aquilla":
+##                aquilla.delete(0, 'last')
+##                create(aquilla, "Aquilla")
+##            elif nsend =="Valkrill":
+##                valkrill.delete(0, 'last')
+##                create(valkrill, "Valkrill")
         # used to make it so all the fields can be edited
         def editor():
             name.config(state=NORMAL)
@@ -198,7 +266,8 @@ class Display:
         def create(file, name):
             send = []
             if name == "allUnits":
-                send = self.generals
+                for general in self.generals:
+                    send.append(general[0])
             else:
                 send.append(name.upper())
                 
@@ -361,28 +430,72 @@ class Display:
                             enemies.add_command(label=i[0], command=partial(menuHelp, i[0]), background = CustColorChange(self.db.display(i[0])))
         # adds new characters
         def add(send=[]):
-            if send == []:
+            if send == [] or len(send) < 15:
+                send = []
                 change = True
                 if name.get("1.0",END).isspace() or general.get("1.0",END).isspace(): return
                 send.append(name.get("1.0",END).upper().strip("\n"))
                 send.append(general.get("1.0",END).upper().strip("\n"))
+                if send[-1] not in self.general:
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR GENERAL"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(race.get("1.0",END).upper().strip("\n"))
                 send.append(ty.get("1.0",END).upper().strip("\n"))
                 send.append(cla.get("1.0",END).upper().strip("\n"))
                 send.append(personality.get("1.0",END).upper().strip("\n"))
                 send.append(size.get("1.0",END).upper().strip("\n"))
                 send.append(life.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR LIFE"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(move.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR MOVE"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(ran.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR RANGE"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(attack.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR ATTACK"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(defense.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR DEFENSE"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 send.append(points.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR POINT VALUE"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 if abilities['state'] == "normal":
                     send.append(abilities.get("1.0",END).upper().strip("\n"))
                 else: send.append(self.oldText)
                 send.append(quantity.get("1.0",END).upper().strip("\n"))
+                if not send[-1].isdigit():
+                    mes = "ERROR: AN INVALID ENTRY WAS GIVEN FOR QUANTITY"
+                    messagebox.showerror('INCORRECT DATA', mes)
+                    send = []
+                    return
                 
             else: change = False
+            if self.db.display(send[0]):
+                if not messagebox.askokcancel('UNIT ALREADY EXISTS','This unit already exists, save anyways?'):
+                    return
             self.db.add(send[0],
                         send[1],
                         send[2],
@@ -405,6 +518,7 @@ class Display:
                 self.db.addRecord(send[0], 0, 0, 'N\A', worth)
             for i in range(0,15): send.pop()
             if change: deleteMenu()
+            messagebox.showinfo("SUCCESS", "UNIT SUCCESSFULLY SAVED")
 
         ## for setting up the specials tab on the right
         def specialSetup():
@@ -427,6 +541,7 @@ class Display:
             self.tabs[1].grid(row=0,column=0,sticky="news")
 
             self.tabs.append(Scrollbar(self.tabs[0],orient="vertical", command=self.tabs[1].yview))
+            self.tabs[1].config(yscrollcommand = self.tabs[-1].set)
             self.tabs[2].grid(row=0,column=1,sticky=N+S)
             
             self.tabs.append(Frame(self.tabs[1]))
@@ -481,41 +596,50 @@ class Display:
         window.config(menu=menu)
         filemenu = Menu(menu, tearoff=0)
         file = Menu(menu, tearoff=0)
+        fileDelGenerals = Menu(menu, tearoff = 0)
+                               
+        myVarsFiles = vars()
+
         allUnits = Menu(menu, tearoff=0)
         create (allUnits, "allUnits")
-        utgar = Menu(menu, tearoff=0)
-        create(utgar, "utgar")
-        jandar = Menu(menu, tearoff=0)
-        create(jandar, "jandar")
-        ullar = Menu(menu, tearoff=0)
-        create(ullar, "ullar")
-        vydar = Menu(menu, tearoff=0)
-        create(vydar, "vydar")
-        einar = Menu(menu, tearoff=0)
-        create(einar, "einar")
-        aquilla = Menu(menu, tearoff=0)
-        create(aquilla, "aquilla")
-        valkrill = Menu(menu, tearoff=0)
-        create(valkrill, "valkrill")
-        marvel = Menu(menu, tearoff=0)
-        create(marvel, "marvel")
+        for general in self.generals:
+            myVarsFiles[general[0]] = Menu(menu, tearoff = 0)
+            create(myVarsFiles[general[0]], general[0])
+##        utgar = Menu(menu, tearoff=0)
+##        create(utgar, "utgar")
+##        jandar = Menu(menu, tearoff=0)
+##        create(jandar, "jandar")
+##        ullar = Menu(menu, tearoff=0)
+##        create(ullar, "ullar")
+##        vydar = Menu(menu, tearoff=0)
+##        create(vydar, "vydar")
+##        einar = Menu(menu, tearoff=0)
+##        create(einar, "einar")
+##        aquilla = Menu(menu, tearoff=0)
+##        create(aquilla, "aquilla")
+##        valkrill = Menu(menu, tearoff=0)
+##        create(valkrill, "valkrill")
+##        marvel = Menu(menu, tearoff=0)
+##        create(marvel, "marvel")
 
         menu.add_cascade(label="File",menu=file)
         file.add_command(label="New", command=empty)
         file.add_command(label="Save", command = add)
+        file.add_command(label="Add general", command = addGeneral)
         file.add_command(label="Empty all", command = emptyAll)
-        
+        file.add_cascade(label="Delete general:", menu = fileDelGenerals)
         menu.add_cascade(label="Factions", menu=filemenu)
 
-        filemenu.add_cascade(label="All", menu = allUnits, background=CustColorChange(("","allUnits")))
-        filemenu.add_cascade(label="Jandar", menu = jandar, background=CustColorChange(("","jandar")))
-        filemenu.add_cascade(label="Ullar", menu = ullar, background=CustColorChange(("","ullar")))
-        filemenu.add_cascade(label="Vydar", menu = vydar, background=CustColorChange(("","vydar")))
-        filemenu.add_cascade(label="Einar", menu = einar, background=CustColorChange(("","einar")))
-        filemenu.add_cascade(label="Utgar", menu = utgar, background=CustColorChange(("", "Utgar")))
-        filemenu.add_cascade(label="Aquilla", menu = aquilla, background=CustColorChange(("","aquilla")))
-        filemenu.add_cascade(label="Valkrill", menu = valkrill, background=CustColorChange(("","valkrill")))
-        filemenu.add_cascade(label="Marvel", menu = marvel, background=CustColorChange(("","marvel")))
+##        filemenu.add_cascade(label="All", menu = allUnits, background=CustColorChange(("","allUnits")))
+        updateGenerals()
+##        filemenu.add_cascade(label="Jandar", menu = jandar, background=CustColorChange(("","jandar")))
+##        filemenu.add_cascade(label="Ullar", menu = ullar, background=CustColorChange(("","ullar")))
+##        filemenu.add_cascade(label="Vydar", menu = vydar, background=CustColorChange(("","vydar")))
+##        filemenu.add_cascade(label="Einar", menu = einar, background=CustColorChange(("","einar")))
+##        filemenu.add_cascade(label="Utgar", menu = utgar, background=CustColorChange(("", "Utgar")))
+##        filemenu.add_cascade(label="Aquilla", menu = aquilla, background=CustColorChange(("","aquilla")))
+##        filemenu.add_cascade(label="Valkrill", menu = valkrill, background=CustColorChange(("","valkrill")))
+##        filemenu.add_cascade(label="Marvel", menu = marvel, background=CustColorChange(("","marvel")))
 
         syn = Menu(menu,tearoff=0)
         menu.add_cascade(label="Synergies", menu=syn)
@@ -748,4 +872,7 @@ class Display:
         window.mainloop()
         if self.extra:
             return [self.database, self.opt, starter]
-        return [False, True]
+        keys = self.threads.keys()
+        for key in keys:
+            self.threads[key].join()
+        return [self.database, self.opt]

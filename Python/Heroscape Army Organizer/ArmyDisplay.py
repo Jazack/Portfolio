@@ -11,15 +11,17 @@ from functools import partial
 import sys
 # import additional scripts
 import CardDatabaseMaker
+import pointEval
 import Gather
 import popup
 
 class ArmyDisplay:
-    __slots__ = ['gt', 'db', 'pu', 'generals', 'text','points', 'limit', 'count', 'ret', 'finished', 'wins', 'losses']
+    __slots__ = ['gt', 'db', 'pu', 'pe', 'generals', 'text','points', 'limit', 'count', 'ret', 'finished', 'wins', 'losses']
 
     def __init__(self, db = 'units.db'):
         self.db = CardDatabaseMaker.ReadFiles(db)
         self.gt = Gather.GatherItems(db)
+        self.pe = pointEval.worthEval(db)
         self.pu = popup.PopUp()
         self.text = {}
         self.points = 0
@@ -36,8 +38,10 @@ class ArmyDisplay:
 
     parameters:
     self ----- this can be ignored
+    window --- the window frame being used
+    setups --- used to set up the items to be used
     """
-    def armyView(self, window):
+    def armyView(self, window, setups = ([False, True], [])):
         title = "Heroscape Armies"
         firstRun = True # this likely will not be used, but who knows
         bWidth = 16
@@ -79,8 +83,8 @@ class ArmyDisplay:
         def configArmies():
             groups = self.db.getAllBands()
 ##            print(groups)
-            for group in groups:
-                bands = group[0]
+##            for group in groups:
+##                bands = group[0]
 ##            bands = sorted(bands)
 ##            print(bands)
             groups = sorted(groups)
@@ -158,18 +162,20 @@ class ArmyDisplay:
             for unit in keys:
                 send.append(unit)
                 send.append(self.text[unit])
-                self.db.updateRecord(unit, self.wins, self.losses)
+                worth = self.pe.formula(unit)
+                self.db.updateRecord(unit, self.wins, self.losses, worth)
             self.db.addBands(send)
             configArmies()
             return
         def delete():
             name = setName.get('1.0', END)
             name = name.replace('\n', '')
+            print(name)
             self.db.removeBands(name)
             configArmies()
             return
         
-        def adjust ():
+        def adjust():
             keys = list(self.text.keys())
             keys = sorted(keys)
             write = ""
@@ -215,6 +221,18 @@ class ArmyDisplay:
                 tLoss.delete('1.0', END)
                 tLoss.insert("1.0", num)
                 tLoss.config(state = DISABLED)
+        def startSetup():
+##            self.text
+            for items in setups[1]:
+                self.text[items[0]] = items[1]
+                use = self.db.display(items[0])
+                self.points += use[12] * items[1]
+            adjust()
+            if len(setups) > 2:
+                setName.delete("1.0", END)
+                setName.insert("1.0", setups[2])
+                
+            
 ##            setUp()
         AW = "ADD WIN"
         AL = "ADD LOSS"
@@ -405,6 +423,8 @@ class ArmyDisplay:
         for item in rightWidgits:
             item.grid(row = ro, column = 0)
             ro += 1
-    
+        if len(setups[1]) > 0:
+            startSetup()
         mainloop()
+        return setups[0]
         

@@ -19,7 +19,9 @@ class PopUp:
     # function: popup
     #
     # purpose: set up and run a popup message, with an OK and Cancel button
-    def popup(self, mes):
+    def popup(self, mes):#, win = False):
+##        if win == False:
+##            return
         self.ret = False
         def ok():
             self.ret = True
