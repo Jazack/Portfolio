@@ -1,0 +1,55 @@
+#game-background {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 10%;
+    height: 100%; /* Set a height to the parent div for vertical centering to work */
+    width: 100%;
+  }
+  
+  #game-screen p {
+    position: absolute;
+    height: 30%;
+    overflow: hidden;
+    text-align: center; /* Center the content horizontally */
+  }
+  
+  .wrapper {
+    display: flex;
+    position: relative;
+    align-items: stretch; /* This makes all flex items the same height */
+  }
+  
+  .left-div {
+    padding: 10px;
+    text-align: justify;
+    margin-top: 0px;
+    background-color: grey;
+    color: black;
+    flex: 1 1; /* This makes both divs take up equal space */
+  }
+  
+  .right-div {
+    padding: 10px;
+    text-align:justify;
+    margin-top: 0px;
+    background-color: grey;
+    color: black;
+    flex: 1 1; /* This makes both divs take up equal space */
+  }
+  
+  header {
+    text-align: center;
+    background-color: grey;
+  }
+  
+  #console {
+    text-align: center;
+    padding-right: 10px;
+    background-color: grey;
+    color: white;
+    width: 98.6%;
+    height: 50px; /* Set the height of the console */
+    overflow: hidden; /* Show the scrollbar if necessary */
+  }
